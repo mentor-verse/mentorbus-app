@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">mentorbus</string>
+    <string name="kakao_app_key">fb9c95700a4b32826fe4b00966b42c60</string>
 </resources>
+

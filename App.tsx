@@ -1,118 +1,89 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, {useState, useRef, useEffect} from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import BottomNav from './components/BottomNav';
+import MainWeb from './pages/MainWeb';
+import MentorbusPage from './pages/MentorbusPage';
+import QaBus from './pages/QaBus';
+import Profile from './pages/Profile';
+import WhereMentor from './pages/WhereMentor';
+import MainScreen from './pages/MainScreen';
+import Onboarding from './pages/Onboarding';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const Stack = createNativeStackNavigator();
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+export default function App() {
+  const [currentRouteName, setCurrentRouteName] = useState('');
+  const navigationRef = useRef();
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  // AsyncStorage에 값을 저장하는 함수
+  const storeInitialRoute = async routeName => {
+    try {
+      await AsyncStorage.setItem('initialRoute', routeName);
+    } catch (e) {
+      console.error('Failed to save the route to storage');
+    }
   };
 
+  // AsyncStorage에서 초기 경로 가져오기
+  const getInitialRoute = async () => {
+    try {
+      const savedRoute = await AsyncStorage.getItem('initialRoute');
+      return savedRoute || 'MainScreen'; // 저장된 값이 없으면 기본값은 'MainScreen'
+    } catch (e) {
+      console.error('Failed to fetch the initial route from storage');
+      return 'MainScreen'; // 실패한 경우에도 기본값을 반환
+    }
+  };
+
+  // 앱 시작 시 초기 경로를 설정
+  useEffect(() => {
+    const fetchInitialRoute = async () => {
+      const initialRoute = await getInitialRoute();
+      setCurrentRouteName(initialRoute);
+    };
+    fetchInitialRoute();
+  }, []);
+
+  useEffect(() => {
+    if (currentRouteName === 'MainWeb') {
+      storeInitialRoute('MainWeb');
+      navigationRef.current?.reset({
+        index: 0,
+        routes: [{name: 'MainWeb'}],
+      });
+    }
+  }, [currentRouteName]);
+
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        const initialRouteName = navigationRef.current.getCurrentRoute().name;
+        setCurrentRouteName(initialRouteName);
+      }}
+      onStateChange={() => {
+        const routeName = navigationRef.current.getCurrentRoute().name;
+        setCurrentRouteName(routeName);
+      }}>
+      <Stack.Navigator
+        screenOptions={{headerShown: false}}
+        initialRouteName={currentRouteName}>
+        {currentRouteName !== 'MainWeb' && (
+          <>
+            <Stack.Screen name="MainScreen" component={MainScreen} />
+            <Stack.Screen name="Onboarding" component={Onboarding} />
+          </>
+        )}
+        <Stack.Screen name="MainWeb" component={MainWeb} />
+        <Stack.Screen name="MentorbusPage" component={MentorbusPage} />
+        <Stack.Screen name="QABus" component={QaBus} />
+        <Stack.Screen name="MyPage" component={Profile} />
+        <Stack.Screen name="Find" component={WhereMentor} />
+      </Stack.Navigator>
+      {currentRouteName !== 'MainScreen' &&
+        currentRouteName !== 'Onboarding' && <BottomNav />}
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
-export default App;
