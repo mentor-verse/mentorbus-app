@@ -73,17 +73,10 @@ export default function App() {
         {currentRouteName !== 'MainWeb' && (
           <>
             <Stack.Screen name="MainScreen" component={MainScreen} />
-            <Stack.Screen name="Onboarding" component={Onboarding} />
           </>
         )}
         <Stack.Screen name="MainWeb" component={MainWeb} />
-        <Stack.Screen name="MentorbusPage" component={MentorbusPage} />
-        <Stack.Screen name="QABus" component={QaBus} />
-        <Stack.Screen name="MyPage" component={Profile} />
-        <Stack.Screen name="Find" component={WhereMentor} />
       </Stack.Navigator>
-      {currentRouteName !== 'MainScreen' &&
-        currentRouteName !== 'Onboarding' && <BottomNav />}
     </NavigationContainer>
   );
 }

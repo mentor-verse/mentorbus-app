@@ -36,6 +36,32 @@ const MainScreen = () => {
     }
   };
 
+  const sendLoginDataToServer = async data => {
+    try {
+      const response = await fetch(
+        'https://port-0-mentorbus-backend-m0zjsul0a4243974.sel4.cloudtype.app/api/login',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        },
+      );
+
+      // 응답 상태 코드 확인
+      if (!response.ok) {
+        throw new Error('Network response was not ok: ' + response.status);
+      }
+
+      const result = await response.json();
+      console.log('Server response:', result);
+      AsyncStorage.setItem('kakao_id', kakao_id);
+    } catch (error) {
+      console.error('Error sending login data to server:', error);
+    }
+  };
+
   return (
     <LinearGradient
       colors={['#1485C4', '#55ABDC', '#FFF']} // Apply gradient colors
@@ -72,7 +98,8 @@ const MainScreen = () => {
             .then(result => {
               setLoginResult(result);
               saveLoginResult(result);
-              navigation.navigate('Onboarding');
+              sendLoginDataToServer(result); // 서버로 데이터 전송
+              navigation.navigate('MainWeb');
             })
             .catch(error => {
               setLoginResult('Login failed');
@@ -81,7 +108,7 @@ const MainScreen = () => {
         }}>
         <Image
           source={require('../assets/kakaoLogin.webp')}
-          style={styles.LoginImage} // 로고 이미지 크기 조정
+          style={styles.LoginImage}
         />
       </Pressable>
 
